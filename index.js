@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -31,7 +32,32 @@ async function run() {
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // For jwt token used for role based
+        app.post('/jwt', (req, res) => {
+            const user = req.body; 
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '5h',
+            });
+
+            res.status(200).json({ token });
+        });
+
+        app.get('/protected', (req, res) => {
+            const token = req.headers.authorization?.split(' ')[1];
+            if (!token) return res.status(401).json({ message: 'No token provided' });
+
+            try {
+                const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+                res.status(200).json({ message: 'Access granted', user: decoded });
+            } catch (error) {
+                res.status(403).json({ message: 'Invalid or expired token' });
+            }
+        });
+
+
     }
+
+
 
     finally {
         // Ensures that the client will close when you finish/error
