@@ -10,9 +10,6 @@ app.use(cors());
 app.use(express.json());
 
 
-
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ih9r7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -121,37 +118,7 @@ async function run() {
                 res.status(500).json({ message: 'Server error' });
             }
         });
-        // all users for admin
-        app.get('/users/all', async (req, res) => {
-            try {
-                const { search, role } = req.query;
-                console.log('Query Parameters:', { search, role });
 
-                const database = client.db("wonderBangladesh");
-                const collection = database.collection("users");
-
-                const query = {};
-                if (search) {
-                    query.$or = [
-                        { name: { $regex: new RegExp(search, "i") } },
-                        { email: { $regex: new RegExp(search, "i") } }
-                    ];
-                }
-                if (role) {
-                    query.userRole = role;
-                }
-
-                console.log('Final Query:', query);
-
-                const users = await collection.find(query).toArray();
-                console.log('Fetched Users:', users);
-
-                res.json(users);
-            } catch (error) {
-                console.error("Error fetching users:", error.message);
-                res.status(500).json({ message: "Failed to fetch users.", error: error.message });
-            }
-        });
 
 
         app.get('/users/role', async (req, res) => {
@@ -173,6 +140,40 @@ async function run() {
             } catch (error) {
                 console.error("Error fetching user role:", error);
                 res.status(500).json({ message: "Error fetching user role", error: error.message });
+            }
+        });
+
+        app.put('/update-user', async (req, res) => {
+            try {
+                const { userId, firstName, lastName, photoURL } = req.body;
+
+                if (!userId || !firstName || !lastName || !photoURL) {
+                    return res.status(400).json({ message: "Required fields missing" });
+                }
+
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("users");
+
+                const updatedUser = {
+                    firstName,
+                    lastName,
+                    photoURL,
+                };
+
+                const result = await collection.updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $set: updatedUser }
+                );
+
+                if (result.modifiedCount === 0) {
+                    return res.status(404).json({ message: "User not found" });
+                }
+
+                const updatedUserData = await collection.findOne({ _id: new ObjectId(userId) });
+                res.status(200).json(updatedUserData);
+            } catch (error) {
+                console.error("Error updating user:", error);
+                res.status(500).json({ message: "Error updating user", error: error.message });
             }
         });
 
@@ -485,7 +486,7 @@ async function run() {
         //     }
         // });
 
-        
+        //inside payment
         app.patch('/bookings/:id', async (req, res) => {
             const { id } = req.params;
             const { status } = req.body;
@@ -507,7 +508,7 @@ async function run() {
         });
 
         //Payment---------------------------------------------------------------
-        
+
         app.post('/create-payment-intent', async (req, res) => {
             const { amount, bookingId } = req.body;
 
@@ -540,7 +541,7 @@ async function run() {
             }
         });
 
-        
+
         app.post('/payments/update', async (req, res) => {
             const { paymentIntentId, status } = req.body;
 
@@ -561,7 +562,455 @@ async function run() {
         });
 
         //tourguide story
-        
+        app.get('/stories/guide', async (req, res) => {
+            try {
+                const guideEmail = req.query.email;
+                if (!guideEmail) {
+                    console.warn('Email query parameter is missing');
+                    return res.status(400).json({ message: 'Email query parameter is required' });
+                }
+
+                // console.log('Fetching stories for email:', guideEmail);
+                const database = client.db("imtiaztourismltd");
+
+                const stories = await database.collection('stories').find({ email: guideEmail }).toArray();
+
+                if (!stories || stories.length === 0) {
+                    console.warn('No stories found for email:', guideEmail);
+                    return res.status(404).json({ message: 'No stories found' });
+                }
+
+
+                res.status(200).json(stories);
+            } catch (error) {
+                console.error('Error fetching stories:', error);
+                res.status(500).json({ message: 'Internal server error while fetching stories' });
+            }
+        });
+
+        app.patch('/stories/remove-image', async (req, res) => {
+            try {
+                const { storyId, imagePath } = req.body;
+                const db = client.db('imtiaztourismltd');
+
+                const updatedStory = await db.collection('stories').updateOne(
+                    { _id: new ObjectId(storyId) },
+                    { $pull: { images: imagePath } }
+                );
+
+                if (updatedStory.modifiedCount > 0) {
+                    const story = await db.collection('stories').findOne({ _id: new ObjectId(storyId) });
+                    res.status(200).json(story);
+                } else {
+                    res.status(500).json({ message: 'Failed to remove image' });
+                }
+            } catch (error) {
+                console.error('Error removing image:', error);
+                res.status(500).json({ message: 'Error removing image' });
+            }
+        });
+        app.delete('/stories/:id', async (req, res) => {
+            try {
+                const { id } = req.params;
+                const userEmail = req.query.email;
+                const db = client.db('imtiaztourismltd');
+                const story = await db.collection('stories').findOne({ _id: new ObjectId(id), userEmail });
+
+                if (!story) {
+                    return res.status(404).json({ message: 'Story not found or unauthorized' });
+                }
+
+                const result = await db.collection('stories').deleteOne({ _id: new ObjectId(id) });
+
+                if (result.deletedCount > 0) {
+                    res.status(200).json({ message: 'Story deleted successfully' });
+                } else {
+                    res.status(500).json({ message: 'Failed to delete story' });
+                }
+            } catch (error) {
+                console.error('Error deleting story:', error);
+                res.status(500).json({ message: 'Error deleting story' });
+            }
+        });
+        app.put('/stories/:id', async (req, res) => {
+            try {
+                const { id } = req.params;
+                const { title, text } = req.body;
+
+                console.log('Updating story ID:', id);
+                const db = client.db('imtiaztourismltd');
+
+                const updatedStory = await db.collection('stories').findOneAndUpdate(
+                    { _id: new ObjectId(id) },
+                    { $set: { title, text, updatedAt: new Date() } },
+                    { returnDocument: 'after' }
+                );
+
+                console.log('Updated Story Result:', updatedStory);
+
+                if (updatedStory.value) {
+                    res.status(200).json({ message: 'Story updated successfully', story: updatedStory.value });
+                } else {
+                    res.status(404).json({ message: 'Story not found' });
+                }
+            } catch (error) {
+                console.error('Error updating story:', error);
+                res.status(500).json({ message: 'Error updating story', error });
+            }
+        });
+
+        //tourguide ------------------------------------------------------------------------------------
+
+        app.get('/tourguides', async (req, res) => {
+            try {
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("tourguides");
+
+                // Use aggregation to get 6 random tour guides
+                const guides = await collection.aggregate([{ $sample: { size: 6 } }]).toArray();
+
+                // Check if guides exist
+                if (!guides || guides.length === 0) {
+                    return res.status(404).send({ message: "No tour guides found" });
+                }
+
+                // Send the response
+                res.send(guides);
+            } catch (error) {
+                console.error("Error fetching tour guides:", error);
+                res.status(500).send({ message: "Failed to fetch tour guides" });
+            }
+        });
+        app.get('/tourguides/all', async (req, res) => {
+            try {
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("tourguides");
+
+                const packages = await collection.find({}).toArray();
+                res.send(packages)
+
+            } catch (error) {
+                console.error("Error fetching tour guides:", error);
+                res.status(500).send({ message: "Failed to fetch tour guides" });
+            }
+        });
+
+        app.get('/tourguides/:id', async (req, res) => {
+            try {
+                const { id } = req.params;
+
+                // Validate if the ID is a valid ObjectId
+                if (!ObjectId.isValid(id)) {
+                    return res.status(400).send({ message: "Invalid guide ID format" });
+                }
+
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("tourguides");
+
+                const guide = await collection.findOne({ _id: new ObjectId(id) });
+                if (!guide) {
+                    return res.status(404).send({ message: "Guide not found" });
+                }
+
+                res.send(guide);
+            } catch (error) {
+                console.error("Error fetching guide details:", error);
+                res.status(500).send({ message: "Failed to fetch guide details" });
+            }
+        });
+
+        app.post('/guideapplication', async (req, res) => {
+            try {
+                console.log('Request received:', req.body); // Log the entire request
+
+                const {
+                    title,
+                    reason,
+                    cvLink,
+                    name,
+                    email,
+                    userRole,
+                    image,
+                    age,
+                    experience,
+                    languages,
+                    speciality,
+                    gender,
+                } = req.body;
+
+                console.log('Parsed data:', {
+                    title,
+                    reason,
+                    cvLink,
+                    name,
+                    email,
+                    userRole,
+                    image,
+                    age,
+                    experience,
+                    languages,
+                    speciality,
+                    gender,
+                });
+
+                if (!title || !reason || !cvLink || !name || !email) {
+                    console.error('Missing required fields');
+                    return res.status(400).json({ message: 'Missing required fields' });
+                }
+
+                const guideApplication = {
+                    title,
+                    reason,
+                    cvLink,
+                    name,
+                    email,
+                    userRole,
+                    image,
+                    age: parseInt(age, 10),
+                    experience,
+                    speciality,
+                    languages: Array.isArray(languages) ? languages : languages.split(','),
+                    gender,
+                    status: 'pending',
+                    createdAt: new Date(),
+                };
+
+                console.log('Guide application to save:', guideApplication);
+
+                const database = client.db('imtiaztourismltd');
+                const collection = database.collection('guideApplications');
+                const result = await collection.insertOne(guideApplication);
+
+                if (result.acknowledged) {
+                    console.log('Application added successfully:', result);
+                    res.status(200).json({ message: 'Application added successfully', guideApplication });
+                } else {
+                    console.error('Database insert failed:', result);
+                    res.status(500).json({ message: 'Failed to add application' });
+                }
+            } catch (error) {
+                console.error('Error adding application:', error.message);
+                res.status(500).json({ message: 'Error adding application', error: error.message });
+            }
+        });
+
+
+        app.get('/guideapplications', async (req, res) => {
+            try {
+                const database = client.db('imtiaztourismltd');
+                const collection = database.collection('guideApplications');
+
+                // Fetch all applications
+                const applications = await collection.find().toArray();
+
+                if (applications.length > 0) {
+                    console.log('Applications fetched successfully:', applications);
+                    res.status(200).json(applications);
+                } else {
+                    console.log('No applications found');
+                    res.status(404).json({ message: 'No applications found' });
+                }
+            } catch (error) {
+                console.error('Error fetching applications:', error.message);
+                res.status(500).json({ message: 'Error fetching applications', error: error.message });
+            }
+        });
+        app.post('/manageApplication', async (req, res) => {
+            try {
+                const { applicationId, action } = req.body;
+
+                if (!applicationId || !action) {
+                    return res.status(400).json({ message: 'Application ID and action are required' });
+                }
+
+                const database = client.db('imtiaztourismltd');
+                const applicationsCollection = database.collection('guideApplications');
+                const tourGuidesCollection = database.collection('tourguides');
+                const usersCollection = database.collection('users'); // Reference to the users collection
+
+                // Fetch the application by ID
+                const application = await applicationsCollection.findOne({ _id: new ObjectId(applicationId) });
+
+                if (!application) {
+                    return res.status(404).json({ message: 'Application not found' });
+                }
+
+                if (action === 'accept') {
+                    const guide = {
+                        guide_id: new ObjectId().toString(), // Generate a unique guide ID
+                        name: application.name,
+                        age: application.age,
+                        gender: application.gender,
+                        languages: application.languages,
+                        experience: application.experience,
+                        speciality: application.speciality,
+                        rating: 0,
+                        availability: 'Available',
+                        img: application.image,
+                        email: application.email,
+                        userRole: 'Tour Guide',
+                    };
+
+                    await tourGuidesCollection.insertOne(guide);
+
+                    await usersCollection.updateOne(
+                        { email: application.email },
+                        { $set: { userRole: 'Tour guide' } }
+                    );
+
+                    await applicationsCollection.deleteOne({ _id: new ObjectId(applicationId) });
+
+                    return res.status(200).json({ message: 'Application accepted, guide added, userRole updated, and application removed' });
+                } else if (action === 'reject') {
+                    await applicationsCollection.deleteOne({ _id: new ObjectId(applicationId) });
+
+                    return res.status(200).json({ message: 'Application rejected and removed' });
+                } else {
+                    return res.status(400).json({ message: 'Invalid action' });
+                }
+            } catch (error) {
+                console.error('Error managing application:', error.message);
+                res.status(500).json({ message: 'Error managing application', error: error.message });
+            }
+        });
+
+        //admin panel------------------------------------------------------------
+
+        // //-----------------------------------------
+
+        // all users for admin
+        app.get('/users/all', async (req, res) => {
+            try {
+                const { search, role } = req.query;
+                console.log('Query Parameters:', { search, role });
+
+                const database = client.db("wonderBangladesh");
+                const collection = database.collection("users");
+
+                const query = {};
+                if (search) {
+                    query.$or = [
+                        { name: { $regex: new RegExp(search, "i") } },
+                        { email: { $regex: new RegExp(search, "i") } }
+                    ];
+                }
+                if (role) {
+                    query.userRole = role;
+                }
+
+                console.log('Final Query:', query);
+
+                const users = await collection.find(query).toArray();
+                console.log('Fetched Users:', users);
+
+                res.json(users);
+            } catch (error) {
+                console.error("Error fetching users:", error.message);
+                res.status(500).json({ message: "Failed to fetch users.", error: error.message });
+            }
+        });
+
+        app.get('/admin/payments/total', async (req, res) => {
+            try {
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("bookings");
+                const totalPayment = await collection.aggregate([
+                    { $group: { _id: null, total: { $sum: "$price" } } }
+                ]).toArray();
+
+                res.json({ totalPayment: totalPayment[0]?.total || 0 });
+            } catch (error) {
+                console.error("Error fetching total payments:", error);
+                res.status(500).json({ message: "Failed to calculate total payments" });
+            }
+        });
+
+        // Endpoint to count total tour guides
+        app.get('/admin/tourguides/count', async (req, res) => {
+            try {
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("tourguides");
+                const allTourGuides = await collection.find({}).toArray();
+                const totalTourGuides = allTourGuides.length;
+
+                res.json({ totalTourGuides });
+            } catch (error) {
+                console.error('Error fetching total tour guides:', error.message);
+                res.status(500).json({ message: 'Failed to count tour guides' });
+            }
+        });
+
+        // Endpoint to count total packages
+        app.get("/admin/packages/count", async (req, res) => {
+            try {
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("ourpackages");
+                const allPackages = await collection.find({}).toArray();
+                const totalPackages = allPackages.length;
+
+                res.json({ totalPackages });
+            } catch (error) {
+                console.error("Error fetching total packages:", error);
+                res.status(500).json({ message: "Failed to count packages" });
+            }
+        });
+
+
+
+        // admin state
+        app.get("/api/stats", async (req, res) => {
+            try {
+                const db = client.db("imtiaztourismltd");
+
+                // Ensure the count operations are awaited properly
+                const totalUsers = await db.collection('users').countDocuments();
+                const totalTourGuides = await db.collection('tourguides').countDocuments();
+                const totalStories = await db.collection('stories').countDocuments();
+                const totalPackages = await db.collection('ourpackages').countDocuments();
+
+                const stats = {
+                    totalUsers: totalUsers || 0,
+                    totalTourGuides: totalTourGuides || 0,
+                    totalStories: totalStories || 0,
+                    totalPackages: totalPackages || 0,
+                };
+
+                res.json(stats);
+            } catch (error) {
+                console.error("Error fetching stats:", error);
+                res.status(500).json({ error: "Server error" });
+            }
+        });
+
+        // Endpoint to count total clients
+        app.get('/admin/clients/count', async (req, res) => {
+            try {
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("users");
+                const allClients = await collection.find({ userRole: "Tourist" }).toArray();
+                const totalClients = allClients.length;
+
+                res.json({ totalClients });
+            } catch (error) {
+                console.error("Error fetching total clients:", error);
+                res.status(500).json({ message: "Failed to count clients" });
+            }
+        });
+
+        // Endpoint to count total stories
+        app.get('/admin/stories/count', async (req, res) => {
+            try {
+                const database = client.db("imtiaztourismltd");
+                const collection = database.collection("stories");
+                const allStories = await collection.find({}).toArray();
+                const totalStories = allStories.length;
+
+                res.json({ totalStories });
+            } catch (error) {
+                console.error("Error fetching total stories:", error);
+                res.status(500).json({ message: "Failed to count stories" });
+            }
+        });
 
 
 
