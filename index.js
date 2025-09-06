@@ -151,7 +151,7 @@ async function run() {
                     return res.status(400).json({ message: "Required fields missing" });
                 }
 
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("users");
 
                 const updatedUser = {
@@ -360,7 +360,7 @@ async function run() {
         //             return res.status(400).send({ message: "All fields are required" });
         //         }
 
-        //         const database = client.db("imtiaztourismltd");
+        //         const database = client.db("wonderBangladesh");
         //         const collection = database.collection("bookings");
 
         //         const booking = {
@@ -394,7 +394,7 @@ async function run() {
         //     }
 
         //     try {
-        //         const database = client.db("imtiaztourismltd");
+        //         const database = client.db("wonderBangladesh");
         //         const collection = database.collection("bookings");
 
         //         const bookings = await collection.find({ touristEmail: email }).toArray();
@@ -421,7 +421,7 @@ async function run() {
         //             return res.status(400).send({ message: "Guide name is required." });
         //         }
 
-        //         const database = client.db("imtiaztourismltd");
+        //         const database = client.db("wonderBangladesh");
         //         const bookingsCollection = database.collection("bookings");
 
         //         // Query to filter by guide name
@@ -438,7 +438,7 @@ async function run() {
         // // PATCH: Update booking status
         // app.patch("/bookings/:id", async (req, res) => {
         //     try {
-        //         const database = client.db("imtiaztourismltd");
+        //         const database = client.db("wonderBangladesh");
         //         const bookingsCollection = database.collection("bookings");
         //         const { id } = req.params;
         //         const { status } = req.body;
@@ -467,7 +467,7 @@ async function run() {
 
         // app.delete("/bookings/:id", async (req, res) => {
         //     try {
-        //         const database = client.db("imtiaztourismltd");
+        //         const database = client.db("wonderBangladesh");
         //         const bookingsCollection = database.collection("bookings");
         //         const { id } = req.params;
 
@@ -492,7 +492,7 @@ async function run() {
             const { status } = req.body;
 
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const bookingsCollection = database.collection("bookings");
 
                 const result = await bookingsCollection.updateOne(
@@ -523,7 +523,7 @@ async function run() {
                 });
 
                 // Save payment transaction to the database
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const paymentsCollection = database.collection("payments");
                 await paymentsCollection.insertOne({
                     paymentIntentId: paymentIntent.id,
@@ -546,7 +546,7 @@ async function run() {
             const { paymentIntentId, status } = req.body;
 
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const paymentsCollection = database.collection("payments");
 
                 const result = await paymentsCollection.updateOne(
@@ -571,7 +571,7 @@ async function run() {
                 }
 
                 // console.log('Fetching stories for email:', guideEmail);
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
 
                 const stories = await database.collection('stories').find({ email: guideEmail }).toArray();
 
@@ -591,7 +591,7 @@ async function run() {
         app.patch('/stories/remove-image', async (req, res) => {
             try {
                 const { storyId, imagePath } = req.body;
-                const db = client.db('imtiaztourismltd');
+                const db = client.db('wonderBangladesh');
 
                 const updatedStory = await db.collection('stories').updateOne(
                     { _id: new ObjectId(storyId) },
@@ -613,7 +613,7 @@ async function run() {
             try {
                 const { id } = req.params;
                 const userEmail = req.query.email;
-                const db = client.db('imtiaztourismltd');
+                const db = client.db('wonderBangladesh');
                 const story = await db.collection('stories').findOne({ _id: new ObjectId(id), userEmail });
 
                 if (!story) {
@@ -638,7 +638,7 @@ async function run() {
                 const { title, text } = req.body;
 
                 console.log('Updating story ID:', id);
-                const db = client.db('imtiaztourismltd');
+                const db = client.db('wonderBangladesh');
 
                 const updatedStory = await db.collection('stories').findOneAndUpdate(
                     { _id: new ObjectId(id) },
@@ -663,7 +663,7 @@ async function run() {
 
         app.get('/tourguides', async (req, res) => {
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("tourguides");
 
                 // Use aggregation to get 6 random tour guides
@@ -683,7 +683,7 @@ async function run() {
         });
         app.get('/tourguides/all', async (req, res) => {
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("tourguides");
 
                 const packages = await collection.find({}).toArray();
@@ -704,7 +704,7 @@ async function run() {
                     return res.status(400).send({ message: "Invalid guide ID format" });
                 }
 
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("tourguides");
 
                 const guide = await collection.findOne({ _id: new ObjectId(id) });
@@ -777,7 +777,7 @@ async function run() {
 
                 console.log('Guide application to save:', guideApplication);
 
-                const database = client.db('imtiaztourismltd');
+                const database = client.db('wonderBangladesh');
                 const collection = database.collection('guideApplications');
                 const result = await collection.insertOne(guideApplication);
 
@@ -797,7 +797,7 @@ async function run() {
 
         app.get('/guideapplications', async (req, res) => {
             try {
-                const database = client.db('imtiaztourismltd');
+                const database = client.db('wonderBangladesh');
                 const collection = database.collection('guideApplications');
 
                 // Fetch all applications
@@ -823,7 +823,7 @@ async function run() {
                     return res.status(400).json({ message: 'Application ID and action are required' });
                 }
 
-                const database = client.db('imtiaztourismltd');
+                const database = client.db('wonderBangladesh');
                 const applicationsCollection = database.collection('guideApplications');
                 const tourGuidesCollection = database.collection('tourguides');
                 const usersCollection = database.collection('users'); // Reference to the users collection
@@ -912,7 +912,7 @@ async function run() {
 
         app.get('/admin/payments/total', async (req, res) => {
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("bookings");
                 const totalPayment = await collection.aggregate([
                     { $group: { _id: null, total: { $sum: "$price" } } }
@@ -928,7 +928,7 @@ async function run() {
         // Endpoint to count total tour guides
         app.get('/admin/tourguides/count', async (req, res) => {
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("tourguides");
                 const allTourGuides = await collection.find({}).toArray();
                 const totalTourGuides = allTourGuides.length;
@@ -943,7 +943,7 @@ async function run() {
         // Endpoint to count total packages
         app.get("/admin/packages/count", async (req, res) => {
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("ourpackages");
                 const allPackages = await collection.find({}).toArray();
                 const totalPackages = allPackages.length;
@@ -960,7 +960,7 @@ async function run() {
         // admin state
         app.get("/api/stats", async (req, res) => {
             try {
-                const db = client.db("imtiaztourismltd");
+                const db = client.db("wonderBangladesh");
 
                 // Ensure the count operations are awaited properly
                 const totalUsers = await db.collection('users').countDocuments();
@@ -985,7 +985,7 @@ async function run() {
         // Endpoint to count total clients
         app.get('/admin/clients/count', async (req, res) => {
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("users");
                 const allClients = await collection.find({ userRole: "Tourist" }).toArray();
                 const totalClients = allClients.length;
@@ -1000,7 +1000,7 @@ async function run() {
         // Endpoint to count total stories
         app.get('/admin/stories/count', async (req, res) => {
             try {
-                const database = client.db("imtiaztourismltd");
+                const database = client.db("wonderBangladesh");
                 const collection = database.collection("stories");
                 const allStories = await collection.find({}).toArray();
                 const totalStories = allStories.length;
