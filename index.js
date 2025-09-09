@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+// const { MongoClient, ServerApiVersion } = require('mongodb');
 
 app.use(cors());
 app.use(express.json());
@@ -287,204 +287,204 @@ async function run() {
             }
         });
 
-        // // ourpackages--------------------------------------------------------------------------------------------
+        // ourpackages--------------------------------------------------------------------------------------------
 
-        // app.get('/ourpackages', async (req, res) => {
-        //     try {
-        //         const database = client.db("wonderBangladesh");
-        //         const collection = database.collection("ourpackages");
-        //         const packages = await collection.aggregate([{ $sample: { size: 3 } }]).toArray(); // Fetch random 3 packages
-        //         res.send(packages);
-        //     } catch (error) {
-        //         console.error("Error fetching random packages:", error);
-        //         res.status(500).send({ message: "Failed to fetch random packages" });
-        //     }
-        // });
+        app.get('/ourpackages', async (req, res) => {
+            try {
+                const database = client.db("wonderBangladesh");
+                const collection = database.collection("ourpackages");
+                const packages = await collection.aggregate([{ $sample: { size: 3 } }]).toArray(); // Fetch random 3 packages
+                res.send(packages);
+            } catch (error) {
+                console.error("Error fetching random packages:", error);
+                res.status(500).send({ message: "Failed to fetch random packages" });
+            }
+        });
 
-        // app.get('/ourpackages/allpackages', async (req, res) => {
-        //     try {
-        //         const database = client.db("wonderBangladesh");
-        //         const collection = database.collection("ourpackages");
-        //         const packages = await collection.find({}).toArray(); // Fetch all packages
-        //         res.send(packages);
-        //     } catch (error) {
-        //         console.error("Error fetching all packages:", error);
-        //         res.status(500).send({ message: "Failed to fetch all packages" });
-        //     }
-        // });
-        // app.get('/ourpackages/:id', async (req, res) => {
-        //     try {
-        //         const { id } = req.params;
-        //         if (!ObjectId.isValid(id)) {
-        //             return res.status(400).send({ message: "Invalid package ID" });
-        //         }
+        app.get('/ourpackages/allpackages', async (req, res) => {
+            try {
+                const database = client.db("wonderBangladesh");
+                const collection = database.collection("ourpackages");
+                const packages = await collection.find({}).toArray(); // Fetch all packages
+                res.send(packages);
+            } catch (error) {
+                console.error("Error fetching all packages:", error);
+                res.status(500).send({ message: "Failed to fetch all packages" });
+            }
+        });
+        app.get('/ourpackages/:id', async (req, res) => {
+            try {
+                const { id } = req.params;
+                if (!ObjectId.isValid(id)) {
+                    return res.status(400).send({ message: "Invalid package ID" });
+                }
 
-        //         const database = client.db("wonderBangladesh");
-        //         const collection = database.collection("ourpackages");
-        //         const packageDetails = await collection.findOne({ _id: new ObjectId(id) });
+                const database = client.db("wonderBangladesh");
+                const collection = database.collection("ourpackages");
+                const packageDetails = await collection.findOne({ _id: new ObjectId(id) });
 
-        //         if (!packageDetails) {
-        //             return res.status(404).send({ message: "Package not found" });
-        //         }
+                if (!packageDetails) {
+                    return res.status(404).send({ message: "Package not found" });
+                }
 
-        //         res.send(packageDetails);
-        //     } catch (error) {
-        //         console.error("Error fetching package details:", error);
-        //         res.status(500).send({ message: "Failed to fetch package details" });
-        //     }
-        // });
-        // app.post('/ourpackages', async (req, res) => {
-        //     try {
-        //         const packageData = req.body;
-        //         const db = client.db('wonderBangladesh')
+                res.send(packageDetails);
+            } catch (error) {
+                console.error("Error fetching package details:", error);
+                res.status(500).send({ message: "Failed to fetch package details" });
+            }
+        });
+        app.post('/ourpackages', async (req, res) => {
+            try {
+                const packageData = req.body;
+                const db = client.db('wonderBangladesh')
 
-        //         const collection = db.collection('ourpackages');
+                const collection = db.collection('ourpackages');
 
-        //         const result = await collection.insertOne(packageData);
-        //         res.status(201).json({ success: true, data: result });
-        //     } catch (error) {
-        //         console.error('Error saving package:', error.message);
-        //         res.status(500).json({ success: false, message: 'Failed to save package.' });
-        //     }
-        // });
+                const result = await collection.insertOne(packageData);
+                res.status(201).json({ success: true, data: result });
+            } catch (error) {
+                console.error('Error saving package:', error.message);
+                res.status(500).json({ success: false, message: 'Failed to save package.' });
+            }
+        });
 
         //booking -----------------------------------------------------------------------------------------------
 
-        // app.post('/bookings', async (req, res) => {
-        //     try {
-        //         const { packageId, packageName, touristName, touristEmail, touristImage, price, tourDate, guideName } = req.body;
+        app.post('/bookings', async (req, res) => {
+            try {
+                const { packageId, packageName, touristName, touristEmail, touristImage, price, tourDate, guideName } = req.body;
 
-        //         console.log("Received booking data:", req.body);
+                console.log("Received booking data:", req.body);
 
-        //         if (!packageId || !packageName || !touristName || !touristEmail || !price || !tourDate || !guideName) {
-        //             return res.status(400).send({ message: "All fields are required" });
-        //         }
+                if (!packageId || !packageName || !touristName || !touristEmail || !price || !tourDate || !guideName) {
+                    return res.status(400).send({ message: "All fields are required" });
+                }
 
-        //         const database = client.db("wonderBangladesh");
-        //         const collection = database.collection("bookings");
+                const database = client.db("wonderBangladesh");
+                const collection = database.collection("bookings");
 
-        //         const booking = {
-        //             packageId,
-        //             packageName,
-        //             touristName,
-        //             touristEmail,
-        //             touristImage,
-        //             price,
-        //             tourDate,
-        //             guideName,
-        //             status: "pending",
-        //             createdAt: new Date(),
-        //         };
+                const booking = {
+                    packageId,
+                    packageName,
+                    touristName,
+                    touristEmail,
+                    touristImage,
+                    price,
+                    tourDate,
+                    guideName,
+                    status: "pending",
+                    createdAt: new Date(),
+                };
 
-        //         const result = await collection.insertOne(booking);
-        //         console.log("Booking stored in database:", result.insertedId);
-        //         res.send({ message: "Booking successful", bookingId: result.insertedId });
-        //     } catch (error) {
-        //         console.error("Error creating booking:", error);
-        //         res.status(500).send({ message: "Failed to create booking" });
-        //     }
-        // });
+                const result = await collection.insertOne(booking);
+                console.log("Booking stored in database:", result.insertedId);
+                res.send({ message: "Booking successful", bookingId: result.insertedId });
+            } catch (error) {
+                console.error("Error creating booking:", error);
+                res.status(500).send({ message: "Failed to create booking" });
+            }
+        });
 
-        // app.get('/bookings', async (req, res) => {
-        //     const { email } = req.query;
-        //     console.log("Received email:", email);
+        app.get('/bookings', async (req, res) => {
+            const { email } = req.query;
+            console.log("Received email:", email);
 
-        //     if (!email) {
-        //         return res.status(400).json({ message: "Email is required" });
-        //     }
+            if (!email) {
+                return res.status(400).json({ message: "Email is required" });
+            }
 
-        //     try {
-        //         const database = client.db("wonderBangladesh");
-        //         const collection = database.collection("bookings");
+            try {
+                const database = client.db("wonderBangladesh");
+                const collection = database.collection("bookings");
 
-        //         const bookings = await collection.find({ touristEmail: email }).toArray();
+                const bookings = await collection.find({ touristEmail: email }).toArray();
 
-        //         console.log("Bookings fetched:", bookings);
-        //         if (!bookings.length) {
-        //             return res.status(404).json({ message: "No bookings found" });
-        //         }
+                console.log("Bookings fetched:", bookings);
+                if (!bookings.length) {
+                    return res.status(404).json({ message: "No bookings found" });
+                }
 
-        //         res.json(bookings);
-        //     } catch (error) {
-        //         console.error("Error in /bookings:", error);
-        //         res.status(500).json({ message: 'Server error' });
-        //     }
-        // });
-
-
-        // // GET: Fetch bookings assigned to a specific guide
-        // app.get("/bookings/byguide", async (req, res) => {
-        //     try {
-        //         const { guideName } = req.query;
-
-        //         if (!guideName) {
-        //             return res.status(400).send({ message: "Guide name is required." });
-        //         }
-
-        //         const database = client.db("wonderBangladesh");
-        //         const bookingsCollection = database.collection("bookings");
-
-        //         // Query to filter by guide name
-        //         const bookings = await bookingsCollection.find({ guideName }).toArray();
-        //         res.send(bookings);
-        //     } catch (error) {
-        //         console.error("Error fetching bookings:", error);
-        //         res.status(500).send({ message: "Failed to fetch bookings." });
-        //     }
-        // });
+                res.json(bookings);
+            } catch (error) {
+                console.error("Error in /bookings:", error);
+                res.status(500).json({ message: 'Server error' });
+            }
+        });
 
 
+        // GET: Fetch bookings assigned to a specific guide
+        app.get("/bookings/byguide", async (req, res) => {
+            try {
+                const { guideName } = req.query;
 
-        // // PATCH: Update booking status
-        // app.patch("/bookings/:id", async (req, res) => {
-        //     try {
-        //         const database = client.db("wonderBangladesh");
-        //         const bookingsCollection = database.collection("bookings");
-        //         const { id } = req.params;
-        //         const { status } = req.body;
+                if (!guideName) {
+                    return res.status(400).send({ message: "Guide name is required." });
+                }
 
-        //         console.log("Updating booking:", id, "to status:", status);
+                const database = client.db("wonderBangladesh");
+                const bookingsCollection = database.collection("bookings");
 
-        //         if (!status) {
-        //             return res.status(400).send({ message: "Status is required" });
-        //         }
+                // Query to filter by guide name
+                const bookings = await bookingsCollection.find({ guideName }).toArray();
+                res.send(bookings);
+            } catch (error) {
+                console.error("Error fetching bookings:", error);
+                res.status(500).send({ message: "Failed to fetch bookings." });
+            }
+        });
 
-        //         const result = await bookingsCollection.updateOne(
-        //             { _id: new ObjectId(id) },
-        //             { $set: { status } }
-        //         );
 
-        //         if (result.modifiedCount === 0) {
-        //             return res.status(404).send({ message: "Booking not found or status already updated" });
-        //         }
 
-        //         res.send({ message: "Status updated successfully" });
-        //     } catch (error) {
-        //         console.error("Error updating status:", error);
-        //         res.status(500).send({ message: "Failed to update status" });
-        //     }
-        // });
+        // PATCH: Update booking status
+        app.patch("/bookings/:id", async (req, res) => {
+            try {
+                const database = client.db("wonderBangladesh");
+                const bookingsCollection = database.collection("bookings");
+                const { id } = req.params;
+                const { status } = req.body;
 
-        // app.delete("/bookings/:id", async (req, res) => {
-        //     try {
-        //         const database = client.db("wonderBangladesh");
-        //         const bookingsCollection = database.collection("bookings");
-        //         const { id } = req.params;
+                console.log("Updating booking:", id, "to status:", status);
 
-        //         console.log("Deleting booking:", id);
+                if (!status) {
+                    return res.status(400).send({ message: "Status is required" });
+                }
 
-        //         const result = await bookingsCollection.deleteOne({ _id: new ObjectId(id) });
+                const result = await bookingsCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { status } }
+                );
 
-        //         if (result.deletedCount === 0) {
-        //             return res.status(404).send({ message: "Booking not found" });
-        //         }
+                if (result.modifiedCount === 0) {
+                    return res.status(404).send({ message: "Booking not found or status already updated" });
+                }
 
-        //         res.send({ message: "Booking deleted successfully" });
-        //     } catch (error) {
-        //         console.error("Error deleting booking:", error);
-        //         res.status(500).send({ message: "Failed to delete booking" });
-        //     }
-        // });
+                res.send({ message: "Status updated successfully" });
+            } catch (error) {
+                console.error("Error updating status:", error);
+                res.status(500).send({ message: "Failed to update status" });
+            }
+        });
+
+        app.delete("/bookings/:id", async (req, res) => {
+            try {
+                const database = client.db("wonderBangladesh");
+                const bookingsCollection = database.collection("bookings");
+                const { id } = req.params;
+
+                console.log("Deleting booking:", id);
+
+                const result = await bookingsCollection.deleteOne({ _id: new ObjectId(id) });
+
+                if (result.deletedCount === 0) {
+                    return res.status(404).send({ message: "Booking not found" });
+                }
+
+                res.send({ message: "Booking deleted successfully" });
+            } catch (error) {
+                console.error("Error deleting booking:", error);
+                res.status(500).send({ message: "Failed to delete booking" });
+            }
+        });
 
         //inside payment
         app.patch('/bookings/:id', async (req, res) => {
